@@ -19,12 +19,16 @@
   color: #1d4ed8;
 }
 
-.question-card input[type="text"] {
+.question-card textarea {
   width: 100%;
-  padding: 8px;
+  min-height: 120px;
+  padding: 12px;
+  font-size: 16px;
+  resize: vertical;
   border-radius: 6px;
   border: 1px solid #d1d5db;
   margin-bottom: 10px;
+  box-sizing: border-box;
 }
 
 .grading-result {
@@ -69,4 +73,12 @@
 .pagination button:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
+}
+
+.ai-feedback {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background-color: #fafafa;
 }

@@ -16,12 +16,14 @@
     "nodemon": "^3.1.10"
   },
   "dependencies": {
+    "@google/genai": "^2.16.0",
     "@sendgrid/mail": "^8.1.6",
     "cors": "^2.8.5",
     "csvtojson": "^2.0.10",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "fs": "^0.0.1-security",
+    "googleapis": "^174.0.1",
     "mongoose": "^8.19.3",
     "path": "^0.12.7"
   }
