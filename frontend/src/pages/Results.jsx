@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { questionAPI } from "../services/api";
 import { gradeAnswers } from "../utils/grading";
 import { addCompletedQuestion } from "../utils/localStorage";
@@ -7,7 +7,7 @@ import "../styles/Results.css";
 
 function Results() {
   const location = useLocation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,6 +25,7 @@ function Results() {
 
   useEffect(() => {
     fetchQuestions(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   const fetchQuestions = async (currentPage) => {
