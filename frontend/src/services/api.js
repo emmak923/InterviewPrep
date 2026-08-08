@@ -1,7 +1,5 @@
 import axios from "axios";
-const hostname = process.env.REACT_APP_HOSTNAME || "127.0.0.2";
-const port = process.env.REACT_APP_PORT || 3002;
-const API_BASE_URL = `http://${hostname}:${port}`;
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 // const API_BASE_URL = `https://${hostname}`;
 console.log("API Base URL:", API_BASE_URL);
 
