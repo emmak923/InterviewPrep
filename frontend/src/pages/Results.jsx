@@ -79,16 +79,19 @@ function Results() {
         [question._id]: true,
       });
 
-      const response = await fetch("http://localhost:3001/ai/evaluate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/ai/evaluate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: question.Question,
+            answer: answer,
+          }),
         },
-        body: JSON.stringify({
-          question: question.Question,
-          answer: answer,
-        }),
-      });
+      );
 
       const data = await response.json();
       const parsedFeedback = JSON.parse(data.feedback);
