@@ -14,6 +14,7 @@ const { encodeToken } = require("../../../utils/jwt-utils");
 const { randomNumberOfNDigits } = require("../../../utils/compute-utils");
 const sendEmail = require("../../../utils/email-utils");
 const authorize = require("../../../shared/middlewares/authorize");
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 // Login Route
 router.post("/login", loginRules, async (req, res) => {
@@ -175,7 +176,7 @@ router.post("/forgot-password", async (req, res) => {
       },
     );
 
-    const resetLink = `http://localhost:3000/reset-password/${token}`;
+    const resetLink = `${FRONTEND_URL}/reset-password/${token}`;
 
     try {
       await sendEmail(
