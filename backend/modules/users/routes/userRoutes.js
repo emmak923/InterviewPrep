@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const UserModel = require("../models/userModel");
 const OTPModel = require("../models/otpModel");
+const PasswordResetModel = require("../models/passwordResetModel");
+const crypto = require("crypto");
 const userValidation = require("../middlewares/userValidation");
 const registerRules = require("../middlewares/registerRules");
 const loginRules = require("../middlewares/loginRules");
@@ -42,7 +44,7 @@ router.post("/login", loginRules, async (req, res) => {
     await OTPModel.findOneAndUpdate(
       { email },
       { email, otp, expiresAt: new Date(Date.now() + 1000 * 60 * 10) },
-      { upsert: true }
+      { upsert: true },
     );
 
     try {
@@ -132,6 +134,134 @@ router.post("/register", registerRules, async (req, res) => {
   } catch (error) {
     console.error("Error in /users/register:", error);
     res.status(500).json({ errorMessage: error.message });
+  }
+});
+
+// Forgot Password Route
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        errorMessage: "Email is required",
+      });
+    }
+
+    const foundUser = await UserModel.findOne({ email });
+
+    if (!foundUser) {
+      return res.status(404).json({
+        errorMessage: "No account found with this email address",
+      });
+    }
+
+    // Generate a secure random token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Token expires in 15 minutes
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
+
+    await PasswordResetModel.findOneAndUpdate(
+      { email },
+      {
+        email,
+        token,
+        expiresAt,
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+
+    const resetLink = `http://localhost:3000/reset-password/${token}`;
+
+    try {
+      await sendEmail(
+        email,
+        "Reset Your InterviewPrep Password",
+        `You requested to reset your InterviewPrep password.\n\nPlease click the following link to reset your password:\n\n${resetLink}\n\nThis link will expire in 15 minutes.\n\nIf you did not request a password reset, you can safely ignore this email.`,
+      );
+    } catch (mailError) {
+      console.error("Failed to send password reset email:", mailError);
+
+      return res.status(500).json({
+        errorMessage: "Failed to send password reset email",
+      });
+    }
+
+    res.json({
+      message: "Password reset link has been sent to your email",
+    });
+  } catch (error) {
+    console.error("Error in /users/forgot-password:", error);
+
+    res.status(500).json({
+      errorMessage: "Internal Server Error",
+    });
+  }
+});
+
+// Reset Password Route
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        errorMessage: "Token and password are required",
+      });
+    }
+
+    // Find the reset token
+    const resetRequest = await PasswordResetModel.findOne({ token });
+
+    if (!resetRequest) {
+      return res.status(400).json({
+        errorMessage: "Invalid or expired password reset link",
+      });
+    }
+
+    // Check if token has expired
+    if (resetRequest.expiresAt < new Date()) {
+      await PasswordResetModel.deleteOne({ token });
+
+      return res.status(400).json({
+        errorMessage: "Password reset link has expired",
+      });
+    }
+
+    // Find the user
+    const foundUser = await UserModel.findOne({
+      email: resetRequest.email,
+    });
+
+    if (!foundUser) {
+      return res.status(404).json({
+        errorMessage: "User not found",
+      });
+    }
+
+    // Update password
+    // UserSchema.pre("save") will hash the password automatically
+    foundUser.password = password;
+    await foundUser.save();
+
+    // Delete the reset token so it cannot be reused
+    await PasswordResetModel.deleteOne({
+      _id: resetRequest._id,
+    });
+
+    res.json({
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error("Error in /users/reset-password:", error);
+
+    res.status(500).json({
+      errorMessage: "Internal Server Error",
+    });
   }
 });
 
@@ -226,7 +356,7 @@ router.put(
             role: newUser.role,
           },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!updatedUser) {
@@ -240,7 +370,7 @@ router.put(
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 );
 
 // Delete a user by ID
